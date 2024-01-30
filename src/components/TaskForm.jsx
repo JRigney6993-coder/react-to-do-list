@@ -7,11 +7,17 @@ const TaskForm = ({ dispatch, categories, task = {} }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const payload = { 
-            id: task.id || Date.now(), 
-            title, 
+
+        if (!title.trim() || !description.trim() || !categoryId) {
+            alert("Please fill in all fields correctly.");
+            return;
+        }
+
+        const payload = {
+            id: task.id || Date.now(),
+            title,
             description,
-            categoryId: categoryId || ''
+            categoryId
         };
 
         if (task.id) {
@@ -25,33 +31,40 @@ const TaskForm = ({ dispatch, categories, task = {} }) => {
         setCategoryId('');
     };
 
+
     return (
-        <form onSubmit={handleSubmit}>
-            <input 
-                type="text" 
-                value={title} 
+        <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
+            <input
+                type="text"
+                value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Title"
-                required 
+                required
+                className="border p-2 rounded"
             />
-            <textarea 
-                value={description} 
+            <textarea
+                value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Description"
-                required 
+                required
+                className="border p-2 rounded"
             />
-            <select 
-                value={categoryId} 
+            <select
+                value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
                 required
+                className="border p-2 rounded"
             >
                 <option value="">Select Category</option>
                 {categories.map(category => (
                     <option key={category.id} value={category.id}>{category.name}</option>
                 ))}
             </select>
-            <button type="submit">{task.id ? 'Update' : 'Add'} Task</button>
+            <button type="submit" className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
+                {task.id ? 'Update' : 'Add'} Task
+            </button>
         </form>
+
     );
 };
 

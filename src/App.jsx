@@ -1,35 +1,54 @@
-import React, { useReducer, useEffect } from 'react';
+import { useReducer, useEffect, useState } from 'react';
 import { tasksReducer } from './reducers/tasksReducer';
 import { categoriesReducer } from './reducers/categoriesReducer';
 import TaskList from './components/TaskList';
 import TaskForm from './components/TaskForm';
 import CategoryManager from './components/CategoryManager';
+import FilterSortTasks from './components/FilterSortTasks';
 
 const initialTasks = [];
 const initialCategories = [];
 
 function App() {
-    const [tasks, dispatchTasks] = useReducer(tasksReducer, initialTasks);
-    const [categories, dispatchCategories] = useReducer(categoriesReducer, initialCategories);
+  const [tasks, dispatchTasks] = useReducer(tasksReducer, initialTasks);
+  const [categories, dispatchCategories] = useReducer(categoriesReducer, initialCategories);
+  const [filteredTasks, setFilteredTasks] = useState([]);
 
-    useEffect(() => {
-        const storedTasks = localStorage.getItem('tasks');
-        const storedCategories = localStorage.getItem('categories');
-        if (storedTasks) dispatchTasks({ type: 'LOAD_TASKS', payload: JSON.parse(storedTasks) });
-        if (storedCategories) dispatchCategories({ type: 'LOAD_CATEGORIES', payload: JSON.parse(storedCategories) });
-    }, []);
+  useEffect(() => {
+    setFilteredTasks(tasks);
+  }, [tasks]);
 
-    useEffect(() => {
-        localStorage.setItem('tasks', JSON.stringify(tasks));
-        localStorage.setItem('categories', JSON.stringify(categories));
-    }, [tasks, categories]);
+  const handleFilterChange = (categoryId) => {
+    if (categoryId === '') {
+      setFilteredTasks(tasks);
+    } else {
+      const filtered = tasks.filter(task => task.categoryId === categoryId);
+      setFilteredTasks(filtered);
+    }
+  };
 
-    return (
-      <div className="App">
-            <TaskForm dispatch={dispatchTasks} categories={categories} />
-            <TaskList tasks={tasks} categories={categories} dispatch={dispatchTasks} />
-            <CategoryManager categories={categories} dispatch={dispatchCategories} />
-        </div>
+  const handleSortChange = (sortCriteria) => {
+    const sortedTasks = [...filteredTasks];
+    if (sortCriteria === 'name') {
+      sortedTasks.sort((a, b) => a.title.localeCompare(b.title));
+    } else if (sortCriteria === 'date') {
+      sortedTasks.sort((a, b) => new Date(a.id) - new Date(b.id));
+    }
+    setFilteredTasks(sortedTasks);
+  };
+
+  return (
+    <div className="App container mx-auto p-4">
+      <TaskForm dispatch={dispatchTasks} categories={categories} />
+      <FilterSortTasks
+        categories={categories}
+        onFilterChange={handleFilterChange}
+        onSortChange={handleSortChange}
+      />
+      <TaskList tasks={filteredTasks} categories={categories} dispatch={dispatchTasks} />
+      <CategoryManager categories={categories} dispatch={dispatchCategories} />
+    </div>
+
   );
 }
 
